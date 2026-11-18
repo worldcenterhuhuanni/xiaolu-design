@@ -1,0 +1,20 @@
+/* A native dialog: Escape, the focus trap and the backdrop come from the platform. */
+.palette {
+  /* tansuo draws circular arcs: dots stay round and pills keep round ends instead of the app-wide superellipse. */
+  --dsw-corner-shape: round;
+  width: min(680px, calc(100vw - 32px)); margin-top: 14vh; padding: 0; overflow: hidden; color-scheme: dark;
+  color: #eaf1f0; border: 1px solid rgb(255 255 255 / 0.14); border-radius: 20px;
+  background: hsl(200 40% 7% / 0.94); backdrop-filter: blur(28px) saturate(1.35); -webkit-backdrop-filter: blur(28px) saturate(1.35);
+  box-shadow: 0 40px 90px -30px #000;
+  font: 15px/1.5 -apple-system, "SF Pro Text", "PingFang SC", "Helvetica Neue", sans-serif;
+}
+.palette::backdrop { background: rgb(0 0 0 / 0.5); }
+.query { box-sizing: border-box; width: 100%; padding: 17px 20px; font: inherit; font-size: 17px; color: inherit; background: none; border: 0; border-bottom: 1px solid rgb(255 255 255 / 0.1); outline: 0; }
+.rows { list-style: none; margin: 0; padding: 6px; max-height: 52vh; overflow-y: auto; }
+.rows li { display: flex; align-items: baseline; gap: 10px; padding: 9px 12px; border-radius: 12px; cursor: pointer; }
+.rows li[data-on] { background: rgb(255 255 255 / 0.09); }
+.rows em { flex: none; width: 2.6em; font-style: normal; font-size: 11px; color: hsl(200 80% 76%); }
+.rows span { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rows small { flex: none; max-width: 11em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: rgb(234 241 240 / 0.38); font-size: 12px; }
+.rows mark { color: #1d1305; background: #ffb866; border-radius: 3px; }
+.rows .none { color: rgb(234 241 240 / 0.62); cursor: default; }

@@ -1,0 +1,25 @@
+/* The label sits above the composer card under either app theme, so it takes the surrounding text color and
+   only the two branch states use the stage's own accents. */
+.dock {
+  /* tansuo draws circular arcs: dots stay round and pills keep round ends instead of the app-wide superellipse. */
+  --dsw-corner-shape: round;
+  box-sizing: border-box; flex: none; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-height: 28px; font-size: 13px;
+  /* The composer card's own width axis, so the label lines up with the card's left edge. */
+  width: calc(100% - var(--dsh-composer-side-clearance) - var(--dsh-composer-side-clearance));
+  max-width: var(--dsh-composer-card-max-width); margin: 0 auto; padding-inline: 6px;
+}
+.dock button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+.dock :focus-visible { outline: 2px solid #ffb866; outline-offset: 2px; }
+.mode { height: 26px; padding: 0 10px; border-radius: 999px; font-size: 12px; opacity: 0.62; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mode:disabled { cursor: default; }
+.mode[data-kind] { opacity: 1; }
+.mode[data-kind="fork"] { color: hsl(var(--h2, 200) calc(70% * var(--sat, 1) + 10%) 76%); background: hsl(var(--h, 185) calc(40% * var(--sat, 1)) 8% / 0.82); }
+.mode[data-kind="edit"] { color: #ffb866; background: hsl(var(--h, 185) calc(40% * var(--sat, 1)) 8% / 0.82); box-shadow: inset 0 0 0 1px rgb(255 184 102 / 0.35); }
+.mode b { margin-left: 4px; font-weight: 400; opacity: 0.7; }
+.dock .quick {
+  height: 28px; padding: 0 12px; border-radius: 999px; color: rgb(234 241 240 / 0.72);
+  background: hsl(var(--h, 185) calc(40% * var(--sat, 1)) 8% / 0.72); border: 1px solid rgb(255 255 255 / 0.1);
+  transition: color 0.2s, border-color 0.2s, translate 0.2s;
+}
+.dock .quick:hover { color: #eaf1f0; border-color: #ffb866; translate: 0 -1px; }
+@media (prefers-reduced-motion: reduce) { .quick { transition: none; } }

@@ -1,0 +1,12 @@
+# One row mounts both halves: the Host half keeps branch records and Session groups,
+# and the browser half, found through this package's client declaration, replaces the Chat view.
+- insert:
+    - id: xiaolu-design
+      name: dsh-xiaolu-design
+
+# The search palette (Ctrl/Cmd+K) searches message content of other Sessions, so the
+# in-memory index opens on the first search instead of staying closed.
+- id: session-query-sqlite
+  config:
+    path: ':memory:'
+    openAt: first-search

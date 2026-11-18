@@ -1,0 +1,231 @@
+/* Color system: --h / --h2 / --sat are the Session's water theme and every dark surface derives
+   from them. The question is a light note that ignores the theme; the answer is a dark sheet.
+   Amber marks only what can be acted on or is happening now. */
+@property --beam { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
+
+.stage {
+  /* tansuo draws circular arcs: dots stay round and pills keep round ends instead of the app-wide superellipse. */
+  --dsw-corner-shape: round;
+  --h: 185; --h2: 200; --sat: 1;
+  --text: #eaf1f0;
+  --mute: rgb(234 241 240 / 0.62);
+  --faint: rgb(234 241 240 / 0.38);
+  --line: rgb(255 255 255 / 0.1);
+  --amber: #ffb866;
+  --cool: hsl(var(--h2) calc(70% * var(--sat) + 10%) 76%);
+  --glass: hsl(var(--h) calc(42% * var(--sat)) 7% / 0.8);
+  --glass-thin: hsl(var(--h) calc(40% * var(--sat)) 9% / 0.5);
+  position: relative; height: 100%; min-height: 0; overflow: hidden; color-scheme: dark; container-type: inline-size;
+  color: var(--text);
+  font: 15px/1.65 -apple-system, "SF Pro Text", "PingFang SC", "Helvetica Neue", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+.stage * { box-sizing: border-box; }
+:where(.stage) button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+.stage button:disabled { cursor: default; opacity: 0.5; }
+.stage :focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+.stage svg { flex: none; width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.grow { flex: 1; }
+.ib { display: inline-grid; place-items: center; width: 30px; height: 30px; padding: 0; border-radius: 10px; color: var(--faint); }
+.ib:hover { color: var(--text); background: rgb(255 255 255 / 0.1); }
+
+/* The orb is the answer's face: a small highlighted sphere with color turning inside. */
+.orb {
+  flex: none; width: 22px; height: 22px; border-radius: 50%;
+  background:
+    radial-gradient(circle at 32% 26%, rgb(255 255 255 / 0.95), transparent 36%),
+    conic-gradient(from var(--beam),
+      hsl(var(--h) calc(90% * var(--sat)) 50%), hsl(var(--h2) calc(95% * var(--sat)) 70%),
+      hsl(var(--h) calc(80% * var(--sat)) 28%), hsl(var(--h2) calc(90% * var(--sat)) 60%), hsl(var(--h) calc(90% * var(--sat)) 50%));
+  box-shadow: 0 0 14px hsl(var(--h2) calc(90% * var(--sat)) 60% / 0.55), inset 0 -3px 6px rgb(0 0 0 / 0.4);
+  animation: beam 8s linear infinite;
+}
+@keyframes beam { to { --beam: 360deg; } }
+@keyframes blink { 50% { opacity: 0; } }
+@keyframes swell { to { scale: 1.25; } }
+@keyframes shine { from { background-position: 110% 0; } to { background-position: -110% 0; } }
+@keyframes read { to { scale: 1 1; } }
+
+/* Depth: the camera sits slightly above the cards and looks into the distance. */
+.scenes {
+  position: absolute; top: 150px; bottom: 64px; left: 0; right: 0;
+  margin-inline: auto; width: min(840px, calc(100% - 32px));
+  perspective: 1500px; perspective-origin: 50% -10%;
+  transition: top 0.35s, bottom 0.35s, width 0.35s;
+}
+.scene {
+  position: absolute; inset: 0; display: flex; flex-direction: column; transform-origin: 50% 0; will-change: transform, opacity;
+  /* Parallax uses the separate translate property, so it does not fight the transform GSAP owns. */
+  translate: calc(var(--px, 0) * var(--d, 0) * -22px) calc(var(--py, 0) * var(--d, 0) * -10px);
+}
+
+/* The question: a light note pressed on the sheet's top right corner. */
+.ask { position: relative; z-index: 2; flex: none; display: flex; justify-content: flex-end; align-items: center; gap: 12px; padding: 0 22px 0 10px; }
+.askmeta { display: flex; align-items: center; gap: 10px; min-width: 0; padding-bottom: 12px; }
+.askmeta .ib { opacity: 0; transition: opacity 0.2s; }
+.scene:hover .askmeta .ib, .askmeta .ib:focus-visible { opacity: 1; }
+.no { font: 600 12px ui-monospace, "SF Mono", monospace; color: var(--cool); letter-spacing: 0.08em; }
+.fork { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--cool); white-space: nowrap; }
+.fork button { width: 24px; height: 24px; border-radius: 8px; border: 1px solid rgb(255 255 255 / 0.18); background: var(--glass-thin); line-height: 1; }
+.fork button:hover { background: rgb(255 255 255 / 0.16); }
+.note {
+  max-width: 74%; max-height: 36vh; overflow-y: auto; padding: 12px 20px 13px; cursor: pointer;
+  border-radius: 22px 22px 6px 22px; color: #16120c;
+  background: linear-gradient(160deg, #fffdf8, #ece5d9);
+  box-shadow: inset 0 1px 0 #fff, 0 18px 40px -14px rgb(0 0 0 / 0.75);
+}
+.note h2 {
+  margin: 0; font-size: 18px; font-weight: 650; line-height: 1.45; letter-spacing: -0.005em; overflow-wrap: anywhere;
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; overflow: hidden;
+}
+.note[data-open] h2 { -webkit-line-clamp: unset; line-clamp: unset; }
+.refs { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 7px; }
+.chip {
+  display: inline-flex; align-items: center; gap: 6px; max-width: 24em; padding: 3px 10px; border-radius: 999px; font-size: 12px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; background: rgb(22 18 12 / 0.09); color: rgb(22 18 12 / 0.72);
+}
+
+/* The answer: a dark sheet. */
+.sheet {
+  position: relative; flex: 0 1 auto; min-height: 0; display: flex; flex-direction: column; overflow: hidden; margin-top: -18px; timeline-scope: --read;
+  border-radius: 28px; border: 1px solid transparent;
+  background:
+    linear-gradient(var(--glass), var(--glass)) padding-box,
+    radial-gradient(460px circle at var(--mx, 30%) var(--my, -30%), rgb(255 255 255 / 0.6), rgb(255 255 255 / 0.1) 60%) border-box;
+  backdrop-filter: blur(28px) saturate(1.35); -webkit-backdrop-filter: blur(28px) saturate(1.35);
+  box-shadow: 0 40px 90px -36px #000;
+}
+/* While generating, a beam runs along the sheet's edge. */
+.scene[data-status="running"] .sheet::before {
+  content: ""; position: absolute; inset: 0; z-index: 3; border-radius: inherit; padding: 1.5px; pointer-events: none;
+  background: conic-gradient(from var(--beam), transparent 0 70%, var(--cool) 85%, var(--amber) 96%, transparent);
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); mask-composite: exclude;
+  animation: beam 2.4s linear infinite;
+}
+.sheet > header { flex: none; display: flex; align-items: center; gap: 10px; padding: 26px 16px 8px 26px; }
+.sheet[data-phase="thinking"] .orb { animation: beam 1s linear infinite, swell 1s ease-in-out infinite alternate; }
+.sheet[data-phase="answering"] .orb { animation-duration: 2.4s; }
+.status { font-size: 13px; color: var(--mute); }
+/* In progress: a light sweeps across the status text. */
+.scene[data-status="running"] .status {
+  background: linear-gradient(100deg, var(--amber) 35%, #fff 50%, var(--amber) 65%) 0 / 220% 100%;
+  -webkit-background-clip: text; background-clip: text; color: transparent; animation: shine 1.5s linear infinite;
+}
+.gist { display: none; flex: 1; min-width: 0; font-size: 13.5px; color: rgb(234 241 240 / 0.78); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gist::before { content: attr(data-no); margin-right: 10px; font: 600 12px ui-monospace, "SF Mono", monospace; color: var(--cool); letter-spacing: 0.08em; }
+
+.progress { flex: none; height: 2px; background: linear-gradient(90deg, var(--cool), var(--amber)); transform-origin: 0 50%; scale: 0 1; animation: read linear both; animation-timeline: --read; }
+.body { flex: 0 1 auto; min-height: 0; overflow-y: auto; padding: 2px 28px 20px; font-size: 15.5px; line-height: 1.75; overscroll-behavior: contain; scroll-timeline: --read block; scrollbar-width: thin; scrollbar-color: rgb(255 255 255 / 0.18) transparent; }
+.outline {
+  position: sticky; top: 0; z-index: 2; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none;
+  margin: 0 -28px 8px; padding: 8px 28px 10px;
+  background: linear-gradient(hsl(var(--h) calc(42% * var(--sat)) 7%) 72%, transparent);
+}
+.outline button { flex: none; padding: 3px 11px; border-radius: 999px; font-size: 12px; color: var(--mute); border: 1px solid var(--line); white-space: nowrap; }
+.outline button:hover { color: var(--text); border-color: var(--cool); }
+.think { margin: 4px 0 16px; padding-left: 14px; border-left: 2px solid var(--line); font-size: 13px; line-height: 1.6; color: var(--mute); }
+.think summary { cursor: pointer; list-style: none; color: var(--faint); width: fit-content; }
+.think summary::-webkit-details-marker { display: none; }
+.think summary::before { content: "▸ "; }
+.think[open] summary::before { content: "▾ "; }
+.think pre { margin: 6px 0 2px; max-height: 220px; overflow-y: auto; white-space: pre-wrap; font: inherit; line-height: 1.85; }
+.sheet[data-phase="thinking"] .think { border-color: var(--amber); }
+.sheet[data-phase="thinking"] .think pre::after, .sheet[data-phase="answering"] .md:last-of-type > :last-child::after {
+  content: "▍"; color: var(--amber); animation: blink 0.9s steps(2) infinite;
+}
+.halted { color: var(--faint); font-size: 13px; }
+.call { margin: 6px 0; font: 12.5px ui-monospace, "SF Mono", monospace; color: var(--cool); }
+/* The sheet is dark under either app theme, so the Markdown tokens are set here instead of following the app theme. */
+.md {
+  color: var(--text);
+  --dsw-alias-label-primary: var(--text);
+  --dsw-alias-label-secondary: var(--mute);
+  --dsw-alias-label-tertiary: var(--faint);
+  --dsw-alias-label-caption: var(--faint);
+  --dsw-alias-link: var(--cool);
+  --dsw-alias-state-business-primary: var(--amber);
+  --dsw-alias-border-l1: var(--line);
+  --dsw-alias-border-l2: var(--line);
+  --dsw-alias-border-l3: var(--line);
+  --dsw-alias-bg-base: transparent;
+  --dsw-alias-markdown-inline-code: rgb(255 255 255 / 0.1);
+  --dsw-alias-markdown-code-block: rgb(0 0 0 / 0.4);
+  --dsw-alias-markdown-code-block-banner: rgb(0 0 0 / 0.55);
+}
+.md > :first-child { margin-top: 0; }
+.md :is(h1, h2, h3, h4) { scroll-margin-top: 54px; }
+
+.tools { display: flex; align-items: center; gap: 2px; margin: 22px -8px 0; }
+.tools button:not(.ib) { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 10px; font-size: 13px; color: var(--mute); }
+.tools button:not(.ib):hover:not(:disabled) { color: var(--text); background: rgb(255 255 255 / 0.09); }
+.tools button[data-on] { color: var(--amber); background: rgb(255 184 102 / 0.14); }
+.tools button[data-down] svg { rotate: 180deg; }
+.tools button[data-stop] { color: var(--amber); }
+
+/* Earlier turns: each layer shows one card's top edge, the answer's gist on the left and the question note on the right. */
+.scene[data-past] { cursor: pointer; }
+.scene[data-past] .ask { padding: 5px 8px 0 0; }
+.scene[data-past] :is(.askmeta, .refs) { display: none; }
+.scene[data-past] .note { max-width: 46%; padding: 8px 16px 9px; box-shadow: inset 0 1px 0 #fff, 0 8px 20px -10px rgb(0 0 0 / 0.7); }
+.scene[data-past] .note h2 { font-size: 15px; -webkit-line-clamp: 1; line-clamp: 1; }
+.scene[data-past] .sheet {
+  flex: none; height: 124px; margin-top: -45px;
+  background: hsl(var(--h) calc(42% * var(--sat)) 9% / 0.94); border-color: rgb(255 255 255 / 0.16);
+  backdrop-filter: none; -webkit-backdrop-filter: none; box-shadow: none;
+  mask-image: linear-gradient(#000 38%, transparent 88%);
+}
+.scene[data-past] .sheet > header { padding: 14px 48% 0 20px; }
+.scene[data-past] .sheet > header .grow { display: none; }
+.scene[data-past] .gist { display: block; }
+.scene[data-past]:hover .sheet { border-color: rgb(255 255 255 / 0.4); }
+.scene[data-past]:hover .gist { color: var(--text); }
+
+.empty { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 6px; text-align: center; }
+.empty h2 { margin: 0; font-size: 36px; font-weight: 650; letter-spacing: -0.02em; }
+.empty p { margin: 0; color: var(--mute); }
+
+/* Focus reading: the current turn fills the stage and everything else yields. */
+.stage[data-focus] .scenes { top: 24px; width: min(1060px, calc(100% - 32px)); }
+.stage[data-focus] :is(.scene[data-past], .rail) { opacity: 0 !important; pointer-events: none; }
+.stage[data-focus] .body { font-size: 16.5px; padding-inline: clamp(28px, 8%, 110px); }
+.stage[data-focus] .outline { margin-inline: calc(-1 * clamp(28px, 8%, 110px)); padding-inline: clamp(28px, 8%, 110px); }
+
+/* Timeline rail. */
+.rail {
+  position: absolute; right: 10px; top: 150px; bottom: 64px; z-index: 120; padding: 6px;
+  display: flex; flex-direction: column; align-items: flex-end; gap: 2px;
+  height: fit-content; max-height: calc(100% - 214px); margin-block: auto;
+  overflow-y: auto; scrollbar-width: none; border-radius: 16px;
+  background: hsl(var(--h) calc(40% * var(--sat)) 8% / 0.72);
+}
+/* Search of this Session's turns. Zero width with a full minimum: the field follows the rail's width without widening it. */
+.find {
+  position: sticky; top: 0; z-index: 1; flex: none; align-self: stretch; width: 0; min-width: 100%; height: 28px; margin-bottom: 4px; padding: 0 9px;
+  border-radius: 10px; border: 1px solid var(--line); outline: 0; color: var(--text); font: inherit; font-size: 12.5px;
+  background: hsl(var(--h) calc(42% * var(--sat)) 7%);
+}
+.find::placeholder { color: var(--faint); }
+.find:focus { border-color: var(--amber); }
+.find:focus-visible { outline: 0; }
+.nohit { margin: 0; padding: 4px 8px; font-size: 12.5px; color: var(--faint); white-space: nowrap; }
+.rail button { display: flex; flex-direction: row-reverse; align-items: center; gap: 8px; padding: 4px 8px; border-radius: 10px; color: var(--faint); }
+.rail i { font: 600 11px ui-monospace, "SF Mono", monospace; font-style: normal; }
+.rail span { max-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 13px; transition: max-width 0.3s; }
+.rail em { font-style: normal; font-size: 11px; color: var(--cool); }
+.rail:hover, .rail:focus-within { background: hsl(var(--h) calc(42% * var(--sat)) 7% / 0.94); }
+.rail:hover span, .rail:focus-within span { max-width: 260px; }
+.rail button:hover { color: var(--text); background: rgb(255 255 255 / 0.07); }
+.rail button[data-current] { color: var(--amber); }
+.rail button[data-live] i { animation: blink 0.9s steps(2) infinite; }
+/* Wide enough: the questions stay visible without hovering. The threshold counts the stage, which is the window minus the sidebar. */
+@container (min-width: 1000px) { .rail span { max-width: 180px; } }
+@container (max-width: 899px) { .rail { display: none; } }
+
+.toast {
+  position: absolute; left: 0; right: 0; bottom: 18px; z-index: 140; margin-inline: auto; width: fit-content; max-width: 90%;
+  padding: 8px 16px; border-radius: 12px; background: hsl(var(--h) calc(40% * var(--sat)) 12% / 0.95); border: 1px solid var(--line); font-size: 13px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stage *, .stage *::before, .stage *::after { animation: none !important; transition: none !important; }
+}

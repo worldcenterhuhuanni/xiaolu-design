@@ -1,0 +1,28 @@
+/* Layout-neutral: the wrapped scroll body stays a direct flex item of the Conversation body. */
+.frame { display: contents; }
+/* Outside the home the Conversation root is not a stacking context, so a negative z-index would fall behind its
+   background. Both layers are positioned without a z-index instead: they paint in document order, the canvas first,
+   and no stacking context is created that could trap a Conversation popover. */
+.canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; pointer-events: none; }
+.frame[data-water] > :not(.canvas) { position: relative; }
+/* Over the water the composer is dark glass under either app theme. Its seat, card and send key read these
+   alias variables, so they are set here instead of restyling the composer's own rules. */
+.frame[data-water] :global([data-composer-seat]) {
+  color-scheme: dark;
+  color: #eaf1f0;
+  --dsw-alias-bg-base: transparent;
+  --dsw-specific-input-major: hsl(var(--h, 185) calc(42% * var(--sat, 1)) 7% / 0.82);
+  --dsw-alias-label-primary: #eaf1f0;
+  --dsw-alias-label-secondary: rgb(234 241 240 / 0.62);
+  --dsw-alias-label-tertiary: rgb(234 241 240 / 0.38);
+  --dsw-alias-label-caption: rgb(234 241 240 / 0.38);
+  --dsw-alias-interactive-bg-hover: rgb(255 255 255 / 0.1);
+  --dsw-alias-interactive-bg-hover-solid: hsl(var(--h, 185) calc(40% * var(--sat, 1)) 14%);
+  --dsw-alias-border-l1: rgb(255 255 255 / 0.1);
+  --dsw-alias-border-l2: rgb(255 255 255 / 0.1);
+  --dsw-alias-border-l3: rgb(255 255 255 / 0.1);
+  --dsw-alias-border-l4: rgb(255 255 255 / 0.16);
+  --dsw-alias-state-business-primary: #ffb866;
+  --dsw-alias-button-info-fill: #ffb866;
+  --dsw-alias-button-info-hover: #ffc783;
+}

@@ -1,0 +1,149 @@
+/* Shelf and overview share the stage's color system: --h / --h2 / --sat come from the current
+   Session's theme, and each tab, card and stack overrides them with its own. */
+@property --beam { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
+
+.root {
+  /* tansuo draws circular arcs: dots stay round and pills keep round ends instead of the app-wide superellipse. */
+  --dsw-corner-shape: round;
+  --h: 185; --h2: 200; --sat: 1;
+  --text: #eaf1f0;
+  --mute: rgb(234 241 240 / 0.62);
+  --line: rgb(255 255 255 / 0.1);
+  --amber: #ffb866;
+  color: var(--text); color-scheme: dark;
+  font: 15px/1.65 -apple-system, "SF Pro Text", "PingFang SC", "Helvetica Neue", sans-serif;
+}
+.root * { box-sizing: border-box; }
+:where(.root) button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+.root :focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+
+.orb {
+  flex: none; width: 22px; height: 22px; border-radius: 50%;
+  background:
+    radial-gradient(circle at 32% 26%, rgb(255 255 255 / 0.95), transparent 36%),
+    conic-gradient(from var(--beam),
+      hsl(var(--h) calc(90% * var(--sat)) 50%), hsl(var(--h2) calc(95% * var(--sat)) 70%),
+      hsl(var(--h) calc(80% * var(--sat)) 28%), hsl(var(--h2) calc(90% * var(--sat)) 60%), hsl(var(--h) calc(90% * var(--sat)) 50%));
+  box-shadow: 0 0 14px hsl(var(--h2) calc(90% * var(--sat)) 60% / 0.55), inset 0 -3px 6px rgb(0 0 0 / 0.4);
+}
+@keyframes beam { to { --beam: 360deg; } }
+@keyframes blink { 50% { opacity: 0; } }
+
+/* Shelf: a row of named Session tabs, centered at the top of the frame. */
+.shelf {
+  position: fixed; left: 50%; top: 6px; z-index: 30; translate: -50% 0; height: 40px; max-width: calc(100vw - 420px);
+  display: flex; align-items: center; gap: 6px; pointer-events: auto; overflow: hidden; padding: 2px;
+}
+.tab, .more {
+  flex: none; display: flex; align-items: center; gap: 8px; height: 34px; padding: 0 13px 0 5px; border-radius: 999px;
+  white-space: nowrap; color: var(--mute); background: hsl(var(--h) calc(40% * var(--sat)) 8%); border: 1px solid var(--line);
+  transition: color 0.2s, border-color 0.2s, translate 0.2s;
+}
+.tab span { max-width: 7em; overflow: hidden; text-overflow: ellipsis; }
+.tab[data-current] span { max-width: 14em; }
+.tab:hover, .more:hover { color: var(--text); border-color: rgb(255 255 255 / 0.28); translate: 0 -1px; }
+.tab[data-current] { color: #16120c; font-weight: 650; background: linear-gradient(160deg, #fffdf8, #ece5d9); border-color: transparent; }
+.tab[data-live] .orb { animation: beam 1.3s linear infinite; }
+.more { flex: none; padding: 0 14px; font-size: 13px; }
+.more::after { content: "▾"; margin-left: 4px; opacity: 0.6; }
+.newbtn {
+  flex: none; display: flex; align-items: center; gap: 6px; height: 34px; padding: 0 15px 0 11px; border-radius: 999px;
+  background: var(--amber); color: #1d1305; font-weight: 650; white-space: nowrap;
+  transition: box-shadow 0.25s, translate 0.2s;
+}
+.newbtn b { font-size: 19px; line-height: 1; font-weight: 500; }
+.newbtn:hover { box-shadow: 0 0 26px 2px rgb(255 184 102 / 0.5); translate: 0 -1px; }
+
+/* Overview: a scene hanging over the frame, with no panel and no border. */
+.wall {
+  position: fixed; inset: 0; z-index: 29; padding: 58px 0 18px; display: flex; flex-direction: column; align-items: center; gap: 4px;
+  pointer-events: auto; background: hsl(var(--h) calc(45% * var(--sat)) 4% / 0.98); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+}
+.wbar {
+  position: relative; z-index: 2; flex: none; display: flex; gap: 6px; width: min(760px, calc(100vw - 32px)); padding: 5px; border-radius: 18px;
+  border: 1px solid rgb(255 255 255 / 0.12); background: hsl(var(--h) calc(42% * var(--sat)) 6% / 0.72);
+}
+.wfilter { flex: 1; min-width: 0; padding: 7px 12px; font: inherit; color: inherit; border: 0; background: none; outline: 0; }
+.wbar button { flex: none; padding: 0 12px; border-radius: 13px; color: var(--mute); font-size: 13px; white-space: nowrap; }
+.wbar button:hover { color: var(--text); }
+.wrange { flex: none; display: flex; gap: 2px; padding: 2px; border-radius: 14px; background: rgb(0 0 0 / 0.3); }
+.wbar button[aria-pressed="true"] { color: #16120c; font-weight: 650; background: linear-gradient(160deg, #fffdf8, #ece5d9); }
+
+/* The camera sits slightly above the cards and looks into the distance. */
+.flow { position: relative; flex: 1; min-height: 0; width: 100%; perspective: 1500px; perspective-origin: 50% 34%; }
+/* A stack is one group. Only its transform moves: opacity or filter here would flatten the depth of its cards. */
+.stack { position: absolute; left: 50%; bottom: 6px; width: 400px; margin-left: -200px; text-align: left; transform-style: preserve-3d; --side: 0.5; cursor: pointer; }
+.stack[data-front] { --side: 1; cursor: default; }
+.pile { position: relative; height: 212px; transform-style: preserve-3d; }
+/* Cards are opaque so the ones behind do not show through. Deeper cards darken by --k, side stacks by --side. */
+.wcard {
+  position: absolute; inset: 0; display: flex; flex-direction: column; padding: 0 16px 10px; border-radius: 18px; overflow: hidden; cursor: pointer; text-align: left;
+  background:
+    radial-gradient(260px circle at 30% -30%, hsl(var(--h2) calc(90% * var(--sat)) 70% / 0.2), transparent 70%),
+    linear-gradient(172deg, hsl(var(--h) calc(52% * var(--sat)) 19%), hsl(var(--h) calc(46% * var(--sat)) 8%) 62%);
+  border: 1px solid hsl(var(--h2) calc(60% * var(--sat)) 70% / 0.22); border-top-color: hsl(var(--h2) calc(90% * var(--sat)) 82% / 0.75);
+  box-shadow: 0 -14px 30px -14px rgb(0 0 0 / 0.75);
+  filter: brightness(calc((1 - var(--k, 0) * 0.085) * var(--side)));
+  transition: translate 0.2s, filter 0.3s;
+}
+.wcard[data-top] { box-shadow: 0 34px 70px -24px #000, 0 0 46px -10px hsl(var(--h2) calc(90% * var(--sat)) 60% / 0.4); }
+.stack[data-front] .wcard:not([data-top]):hover { translate: 0 -9px; filter: brightness(1.15); }
+.wcard[data-current] { border-color: var(--amber); }
+/* Top edge: the only part visible while the card is stacked behind. */
+.wcard > header { flex: none; display: flex; align-items: center; gap: 8px; height: 30px; }
+.wcard .orb { width: 16px; height: 16px; }
+.wcard h3 { flex: 1; min-width: 0; margin: 0; font-size: 14px; font-weight: 650; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wcard time { flex: none; font-size: 11px; color: var(--mute); font-variant-numeric: tabular-nums; }
+.wcard time b { padding: 1px 6px; border-radius: 6px; font-weight: 600; color: var(--text); background: rgb(255 255 255 / 0.14); }
+.wlive { flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--amber); animation: blink 1s steps(2) infinite; }
+.wq { align-self: flex-end; max-width: 100%; margin: 10px 0 0; padding: 4px 11px; border-radius: 12px 12px 3px 12px; font-size: 13px; font-weight: 600; color: #16120c; background: #f1ebe0; white-space: nowrap; }
+.wa { margin: 14px 0 0; font-size: 13px; line-height: 1.6; color: var(--text); opacity: 0.8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wcard footer { display: flex; align-items: center; gap: 1px; margin: auto -6px 0; padding-top: 8px; font-size: 12px; }
+.wcard footer button { flex: none; padding: 3px 6px; border-radius: 8px; color: var(--mute); white-space: nowrap; }
+.wcard footer button:hover { color: var(--text); background: rgb(255 255 255 / 0.12); }
+.wmove { flex: 1; min-width: 0; }
+.wmove select { width: 100%; max-width: 124px; padding: 3px 4px; font: inherit; color: var(--text); color-scheme: dark; border-radius: 8px; border: 1px solid var(--line); background: rgb(0 0 0 / 0.3); text-overflow: ellipsis; }
+.wcard:not([data-top]) footer { visibility: hidden; }
+/* An empty stack, and the new-group slot: one dashed card. */
+.wempty {
+  position: absolute; inset: 0; margin: 0; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+  border-radius: 18px; text-align: center; font-size: 14px; color: var(--mute); border: 1px dashed rgb(255 255 255 / 0.3);
+  background: hsl(var(--h) calc(40% * var(--sat)) 8% / 0.55); filter: brightness(var(--side));
+}
+.wempty small { font-size: 12px; opacity: 0.8; }
+.wempty b { font-size: 34px; line-height: 1; font-weight: 300; color: var(--amber); }
+.stack[data-over] .wempty { color: var(--text); border-color: var(--amber); }
+.stack[data-over] .wcard[data-top] { border-color: var(--amber); box-shadow: 0 0 0 2px var(--amber), 0 34px 70px -24px #000; }
+/* Caption: the stack's name under its front card; group actions appear only on the facing stack. */
+.cap { display: flex; align-items: center; gap: 8px; height: 50px; padding: 8px 6px 0; opacity: var(--side); }
+.cap .orb { width: 20px; height: 20px; }
+.cap h4 { min-width: 0; margin: 0; font-size: 19px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cap input { min-width: 0; width: 9em; font: inherit; font-size: 19px; font-weight: 700; color: inherit; background: none; border: 0; border-bottom: 1px dashed var(--amber); outline: 0; }
+.cap small { flex: 1; font-size: 13px; color: var(--mute); font-variant-numeric: tabular-nums; }
+.cap nav { display: flex; gap: 1px; visibility: hidden; }
+.stack[data-front] .cap nav { visibility: visible; }
+.cap nav button { padding: 3px 8px; border-radius: 8px; font-size: 12px; color: var(--mute); white-space: nowrap; }
+.cap nav button:hover { color: var(--text); background: rgb(255 255 255 / 0.14); }
+.cap nav button[data-danger]:hover { color: #ff9079; background: rgb(255 144 121 / 0.16); }
+
+/* Names along the bottom: every group in one row, a target for selection and for drops. */
+.pills { position: relative; z-index: 2; flex: none; display: flex; gap: 6px; max-width: calc(100vw - 32px); padding: 4px; overflow-x: auto; scrollbar-width: none; }
+.pill { flex: none; display: flex; align-items: center; gap: 6px; height: 30px; padding: 0 11px 0 6px; border-radius: 999px; font-size: 13px; white-space: nowrap; color: var(--mute); background: hsl(var(--h) calc(40% * var(--sat)) 8% / 0.72); border: 1px solid var(--line); transition: color 0.2s, border-color 0.2s; }
+.pill .orb { width: 16px; height: 16px; }
+.pill small { font-size: 11px; opacity: 0.7; font-variant-numeric: tabular-nums; }
+.pill:hover { color: var(--text); border-color: rgb(255 255 255 / 0.3); }
+.pill[data-on] { color: #16120c; font-weight: 650; background: linear-gradient(160deg, #fffdf8, #ece5d9); border-color: transparent; }
+.pill[data-over] { color: var(--text); border-color: var(--amber); box-shadow: 0 0 0 1px var(--amber); }
+.pill[data-add] { padding-left: 11px; border-style: dashed; }
+.pill[data-add] b { color: var(--amber); font-weight: 500; }
+.whint { flex: none; margin: 0; font-size: 12px; color: var(--mute); opacity: 0.8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: calc(100vw - 32px); }
+
+@media (max-width: 760px) {
+  .wrange, .whint { display: none; }
+  .stack { width: 290px; margin-left: -145px; }
+  .shelf { max-width: calc(100vw - 120px); }
+  .tab:not([data-current]) span { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .root *, .root *::before, .root *::after { animation: none !important; transition: none !important; }
+}
