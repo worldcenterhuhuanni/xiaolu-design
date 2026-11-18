@@ -10,6 +10,7 @@ import type {} from '@deepseek-ai/dsh-client-ui-workspace/client'
 import { createSnapshotStore } from '@deepseek-ai/dsh-client-store'
 import type { ObservableSnapshot, SnapshotStore } from '@deepseek-ai/dsh-client-store'
 import type { SubmitOutcome } from '@deepseek-ai/dsh-client-ui-conversation/client'
+import type { SessionBinding } from '@deepseek-ai/dsh-api-session-controller/client'
 import type {} from '@deepseek-ai/dsh-message-feedback/remote'
 import type { MessageId } from '@deepseek-ai/dsh-llm/brand'
 import type { SessionId } from '@deepseek-ai/dsh-session/types'
@@ -39,8 +40,11 @@ declare module '@deepseek-ai/dsh-client-ui-slots' {
   }
 }
 
-/** Slots, dictionaries, the Remote carrier, the Session catalog and Session navigation. */
-export const inject = ['slots', 'locale', 'remote', 'sessions', 'uiWorkspace']
+/** The conversation service's delivery of one composer draft to a Session; the arguments after the Session are passed on untouched. */
+type Send = (session: SessionBinding['session'], ...draft: unknown[]) => Promise<SubmitOutcome>
+
+/** Slots, dictionaries, the Remote carrier, the Session catalog, Session navigation and the composer's delivery. */
+export const inject = ['slots', 'locale', 'remote', 'sessions', 'uiWorkspace', 'conversation']
 
 /**
  * Mount both Remotes, then register the stage for the same plugin lifetime.
@@ -146,25 +150,35 @@ function registerStage(ctx: Context): void {
   }
 
   // A question sent while reading an earlier turn, or while rewriting one, starts a branch and carries the draft's attachments with it.
-  ctx.on('conversation/input-deliver', (delivery) => {
-    sent()
-    const route = routeOf(states.get(delivery.sessionId)?.getSnapshot() ?? INITIAL_STATE)
-    if (route === null) {
-      patch(delivery.sessionId, { cursor: { kind: 'latest' } })
-      return undefined
+  // dsh has no extension point for the Session a composer message goes to, so the stage wraps the conversation service's
+  // delivery for its own lifetime and puts the original back when it is disposed.
+  ctx.effect(() => {
+    const conversation: Context['conversation'] & { sendSession?: Send } = ctx.conversation
+    const original = conversation.sendSession
+    if (typeof original !== 'function') {
+      ctx.logger.warn('xiaolu-design: this dsh has no conversation.sendSession; composer questions cannot start branches')
+      return () => {}
     }
-    return (async (): Promise<SubmitOutcome> => {
+    conversation.sendSession = async (session, ...draft) => {
+      sent()
+      const route = routeOf(states.get(session.sessionId)?.getSnapshot() ?? INITIAL_STATE)
+      if (route === null) {
+        patch(session.sessionId, { cursor: { kind: 'latest' } })
+        return original.call(conversation, session, ...draft)
+      }
       try {
-        const child = await fork(delivery.sessionId, route.cut, route.kind)
-        const outcome = await ctx.sessions.using(child, { source: 'xiaoluDesignBranch' }, reference => delivery.send(reference.binding.session))
-        enter(delivery.sessionId, child, route.cut)
+        const child = await fork(session.sessionId, route.cut, route.kind)
+        const outcome = await ctx.sessions.using(child, { source: 'xiaoluDesignBranch' }, reference =>
+          original.call(conversation, reference.binding.session, ...draft))
+        enter(session.sessionId, child, route.cut)
         return outcome
       } catch (error) {
-        ctx.logger.warn('xiaolu-design: branch from %s was not created: %s', delivery.sessionId, String(error))
+        ctx.logger.warn('xiaolu-design: branch from %s was not created: %s', session.sessionId, String(error))
         return { kind: 'error', text: t('stage.branch.failed') }
       }
-    })()
-  })
+    }
+    return () => { conversation.sendSession = original }
+  }, 'xiaolu-design: composer delivery')
 
   // Ratings reuse the message-feedback capability and exist only while its Remote is mounted.
   let feedback: Context['remote']['messageFeedback'] | undefined

@@ -4,6 +4,10 @@
 
 A conversation plugin for DeepSeek Harness (dsh). It shows a conversation as layers stacked in depth. Ask a question while looking at any earlier turn and a branch starts there; the original conversation is left as it was.
 
+![Reading the first turn and asking from it starts a branch; the two branches are then switched and the timeline is searched](docs/demo.gif)
+
+Recorded against a real dsh server with real model answers, played at 2.5× speed, with the left navigation rail cropped off.
+
 ## What it does
 
 - **Depth stage**: the current turn faces you and earlier turns recede, showing only their top edge. It replaces the Chat view entirely, with no tabs and no title row.
@@ -15,8 +19,7 @@ A conversation plugin for DeepSeek Harness (dsh). It shows a conversation as lay
 
 ## Requirements
 
-- dsh `0.2.2-rc.1` or later, Web.
-- **dsh must provide the `conversation/input-deliver` event** (`@deepseek-ai/dsh-client-ui-conversation`). It is how a question from the composer is redirected to a branch. On a dsh version without it the stage still shows, but a composer question sent while reading an earlier turn goes to the current Session instead of a new branch; regeneration is unaffected.
+- dsh `0.2.2-rc.1` or later, Web. dsh itself needs no change.
 
 ## Install
 
@@ -45,6 +48,8 @@ Remove it with `dsh plugin --profile web remove dsh-xiaolu-design`. The conversa
 
 - It inserts one row, `xiaolu-design`, which brings up both the Host half and the browser half.
 - It sets `openAt` of `session-query-sqlite` to `first-search`, so the search palette can find message content of other Sessions. The index is in memory and opens on the first search.
+
+dsh has no extension point for the Session a composer message goes to, so the browser half wraps the conversation service's `sendSession` for its own lifetime: while you read an earlier turn or rewrite a question, it sends the message and its attachments into a new branch, and passes everything else through; removing the plugin puts the original back. The method is not part of dsh's public interface. If a dsh upgrade renames it, the plugin logs a warning and composer questions go to the current Session again.
 
 The Host half provides two services. Both keep their data in a dsh storage domain, outside Session logs, and nothing reaches the model:
 

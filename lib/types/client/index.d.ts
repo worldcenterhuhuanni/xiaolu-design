@@ -13,7 +13,7 @@ declare module '@deepseek-ai/dsh-client-ui-slots' {
         xiaoluDesign: DesignKey;
     }
 }
-/** Slots, dictionaries, the Remote carrier, the Session catalog and Session navigation. */
+/** Slots, dictionaries, the Remote carrier, the Session catalog, Session navigation and the composer's delivery. */
 export declare const inject: string[];
 /**
  * Mount both Remotes, then register the stage for the same plugin lifetime.
