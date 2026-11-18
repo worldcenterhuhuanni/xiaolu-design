@@ -4,9 +4,9 @@
 
 A conversation plugin for DeepSeek Harness (dsh). It shows a conversation as layers stacked in depth. Ask a question while looking at any earlier turn and a branch starts there; the original conversation is left as it was.
 
-![Reading the first turn and asking from it starts a branch; the two branches are then switched and the timeline is searched](docs/demo.gif)
+![Reading the first turn and asking from it starts a branch; the two branches are then switched and the timeline is searched](docs/demo.webp)
 
-Recorded against a real dsh server with real model answers, played at 2.5× speed, with the left navigation rail cropped off.
+Recorded against a real dsh server with real model answers, played at 2.5× speed, with the left navigation rail cropped off. The video at original speed and resolution is [docs/demo.mp4](docs/demo.mp4).
 
 ## What it does
 
