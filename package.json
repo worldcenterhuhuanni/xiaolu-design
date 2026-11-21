@@ -1,6 +1,6 @@
 {
   "name": "dsh-xiaolu-design",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Depth-stage conversation view for DeepSeek Harness: turns stacked in depth, questions asked from an earlier turn become switchable branches",
   "keywords": [
     "dsh-plugin",
@@ -60,7 +60,7 @@
     "THIRD_PARTY_NOTICES.md"
   ],
   "engines": {
-    "dsh": ">=0.2.2-rc.1"
+    "dsh": ">=0.2.2-rc.5 <0.3.0"
   },
   "dsh": {
     "bundle": {

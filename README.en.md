@@ -19,7 +19,7 @@ Recorded against a real dsh server with real model answers, played at 2.5× spee
 
 ## Requirements
 
-- dsh `0.2.2-rc.1` or later, Web. dsh itself needs no change.
+- dsh from `0.2.2-rc.5` up to, not including, `0.3.0`, Web. dsh itself needs no change. Earlier versions are not supported: `0.2.2-rc.1` lacks the `conversation.hero.frame` slot that the water background uses, and `rc.2` to `rc.4` are unverified.
 
 ## Install
 
@@ -32,7 +32,7 @@ The repository carries the built `lib/`, so installation needs no build approval
 A tarball also works. The repository does not contain one: download it from [Releases](https://github.com/worldcenterhuhuanni/xiaolu-design/releases), or run `pnpm pack` in this repository.
 
 ```sh
-dsh plugin --profile web add ./dsh-xiaolu-design-0.1.0.tgz
+dsh plugin --profile web add ./dsh-xiaolu-design-0.1.1.tgz
 ```
 
 When dsh runs from source there is no global `dsh` command: inside the dsh checkout, replace `dsh` in this page with `pnpm dsh`, for example `pnpm dsh plugin --profile web add <package>`, and launch with `pnpm dsh web`.
