@@ -27,11 +27,15 @@ DeepSeek Harness（dsh）的对话区插件：把对话显示成一摞有纵深�
 dsh plugin --profile web add github:worldcenterhuhuanni/xiaolu-design
 ```
 
-仓库里带着构建好的 `lib/`，安装时不需要构建授权。也可以装本地打好的包：
+仓库里带着构建好的 `lib/`，安装时不需要构建授权。
+
+也可以装 tgz 包。仓库里不带这个文件：从 [Releases](https://github.com/worldcenterhuhuanni/xiaolu-design/releases) 下载，或者在本仓库目录里执行 `pnpm pack` 生成。
 
 ```sh
 dsh plugin --profile web add ./dsh-xiaolu-design-0.1.0.tgz
 ```
+
+从源码运行 dsh 时没有全局的 `dsh` 命令：在 dsh 仓库目录里把本文的 `dsh` 换成 `pnpm dsh`，例如 `pnpm dsh plugin --profile web add <包>`，启动用 `pnpm dsh web`。
 
 装好后检查并启动：
 

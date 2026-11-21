@@ -27,11 +27,15 @@ Recorded against a real dsh server with real model answers, played at 2.5× spee
 dsh plugin --profile web add github:worldcenterhuhuanni/xiaolu-design
 ```
 
-The repository carries the built `lib/`, so installation needs no build approval. A locally packed tarball also works:
+The repository carries the built `lib/`, so installation needs no build approval.
+
+A tarball also works. The repository does not contain one: download it from [Releases](https://github.com/worldcenterhuhuanni/xiaolu-design/releases), or run `pnpm pack` in this repository.
 
 ```sh
 dsh plugin --profile web add ./dsh-xiaolu-design-0.1.0.tgz
 ```
+
+When dsh runs from source there is no global `dsh` command: inside the dsh checkout, replace `dsh` in this page with `pnpm dsh`, for example `pnpm dsh plugin --profile web add <package>`, and launch with `pnpm dsh web`.
 
 Check and launch:
 
